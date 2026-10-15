@@ -21,9 +21,12 @@ import {
   TrendingDown,
   Warehouse,
   History,
-  FileText
+  FileText,
+  Globe
 } from 'lucide-react';
 import { Sparepart, DamagedGood, ProcurementRecord } from '../../types';
+import { ImageUploadWithCompression } from '../common/ImageUploadWithCompression';
+import { OnlineStoreToggle } from '../common/OnlineStoreToggle';
 
 interface InventoryViewProps {
   initialTab?: string;
@@ -47,6 +50,9 @@ interface InventoryViewProps {
     supplier?: string;
     poNumber?: string;
     notes?: string;
+    photoUrl?: string;
+    showInOnlineStore?: boolean;
+    description?: string;
   }) => void;
   onReportDamagedGood: (report: {
     sparepartId?: string;
@@ -165,6 +171,8 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
   const [inboundRack, setInboundRack] = useState('Rak A-1');
   const [inboundSupplier, setInboundSupplier] = useState('Distributor Resmi Bengkel');
   const [inboundNotes, setInboundNotes] = useState('');
+  const [inboundPhotoUrl, setInboundPhotoUrl] = useState('');
+  const [inboundShowOnline, setInboundShowOnline] = useState(true);
   const [isScanningSimulated, setIsScanningSimulated] = useState(false);
 
   // Automatic populate if searched/scanned code matches
@@ -195,6 +203,8 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
       setInboundUnit(found.unit);
       setInboundRack(found.rackLocation);
       if (found.supplier) setInboundSupplier(found.supplier);
+      if (found.photoUrl) setInboundPhotoUrl(found.photoUrl);
+      setInboundShowOnline(found.showInOnlineStore !== false);
     } else {
       setInboundIsExistingFound(false);
       setInboundExistingPart(null);
@@ -237,7 +247,9 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
       unit: inboundUnit.trim() || 'Pcs',
       rackLocation: inboundRack.trim() || 'Gudang Utama',
       supplier: inboundSupplier.trim() || 'Distributor Resmi',
-      notes: inboundNotes.trim()
+      notes: inboundNotes.trim(),
+      photoUrl: inboundPhotoUrl,
+      showInOnlineStore: inboundShowOnline
     });
 
     const successMsg = inboundIsExistingFound
@@ -254,6 +266,8 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
     setInboundName('');
     setInboundStockToAdd(10);
     setInboundNotes('');
+    setInboundPhotoUrl('');
+    setInboundShowOnline(true);
   };
 
   // --------------------------------------------------------------------------
@@ -667,6 +681,26 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                     onChange={(e) => setInboundNotes(e.target.value)}
                     placeholder="Contoh: Pengiriman DO #SJ-8891, kemasan segel aman..."
                     className="w-full bg-transparent border-0 border-b border-slate-300 focus:border-[#008952] focus:ring-0 rounded-none py-1.5 px-0 text-slate-800 font-medium text-xs transition-colors focus:outline-none"
+                  />
+                </div>
+
+                {/* Foto Produk & Auto-WebP Compression */}
+                <div className="pt-2">
+                  <ImageUploadWithCompression
+                    value={inboundPhotoUrl}
+                    onChange={setInboundPhotoUrl}
+                    onClear={() => setInboundPhotoUrl('')}
+                    label="Foto Suku Cadang (Auto-WebP ~30-50KB)"
+                  />
+                </div>
+
+                {/* Sakelar Tampilkan di Toko Online */}
+                <div className="pt-1">
+                  <OnlineStoreToggle
+                    checked={inboundShowOnline}
+                    onChange={setInboundShowOnline}
+                    label="Tampilkan di Toko Online Bengkel"
+                    description="Sparepart ini akan muncul di katalog publik dan dapat dipesan pelanggan melalui WhatsApp."
                   />
                 </div>
 

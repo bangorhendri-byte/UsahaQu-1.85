@@ -70,6 +70,8 @@ export interface KedaiMenuItem {
   description?: string;
   variantGroups?: MenuVariantGroup[];
   toppings?: MenuTopping[];
+  photoUrl?: string;
+  showInOnlineStore?: boolean;
 }
 
 export interface KDSTicket {

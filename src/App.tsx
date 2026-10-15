@@ -455,6 +455,9 @@ export default function App() {
       supplier?: string;
       poNumber?: string;
       notes?: string;
+      photoUrl?: string;
+      showInOnlineStore?: boolean;
+      description?: string;
     }
   ) => {
     const existingIndex = spareparts.findIndex(
@@ -482,7 +485,10 @@ export default function App() {
         sellPrice: itemData.sellPrice || current.sellPrice,
         unit: itemData.unit || current.unit,
         rackLocation: itemData.rackLocation || current.rackLocation,
-        supplier: itemData.supplier || current.supplier
+        supplier: itemData.supplier || current.supplier,
+        photoUrl: itemData.photoUrl !== undefined ? itemData.photoUrl : current.photoUrl,
+        showInOnlineStore: itemData.showInOnlineStore !== undefined ? itemData.showInOnlineStore : current.showInOnlineStore,
+        description: itemData.description || current.description
       };
       setSpareparts(updatedList);
     } else {
@@ -498,7 +504,10 @@ export default function App() {
         sellPrice: itemData.sellPrice,
         unit: itemData.unit,
         rackLocation: itemData.rackLocation,
-        supplier: itemData.supplier
+        supplier: itemData.supplier,
+        photoUrl: itemData.photoUrl,
+        showInOnlineStore: itemData.showInOnlineStore !== undefined ? itemData.showInOnlineStore : true,
+        description: itemData.description
       };
       setSpareparts([newPart, ...spareparts]);
     }

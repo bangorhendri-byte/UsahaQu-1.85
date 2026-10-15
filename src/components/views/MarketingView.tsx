@@ -16,9 +16,26 @@ import {
   CheckCircle2,
   Share2,
   Trash2,
-  FileText
+  FileText,
+  Store,
+  QrCode,
+  Printer,
+  Download,
+  ExternalLink,
+  Globe,
+  Smartphone,
+  RefreshCw
 } from 'lucide-react';
 import { MarketingCampaign, PromoVoucher, CustomerVehicle } from '../../types';
+import { 
+  OnlineStoreConfig, 
+  getOnlineStoreConfig, 
+  saveOnlineStoreConfig, 
+  getPublicStoreUrl, 
+  generateQrCodeDataUrl, 
+  downloadQrCodePng 
+} from '../../services/onlineStoreService';
+import { StandeePrintModal } from '../marketing/StandeePrintModal';
 
 interface MarketingViewProps {
   initialTab?: string;
@@ -29,35 +46,97 @@ interface MarketingViewProps {
   onSendCampaign: (newCampaign: MarketingCampaign) => void;
   onAddVoucher: (newVoucher: PromoVoucher) => void;
   onToggleVoucherActive: (id: string) => void;
+  onOpenOnlineCatalog?: () => void;
 }
 
 export const MarketingView: React.FC<MarketingViewProps> = ({
-  initialTab = 'broadcast-wa',
+  initialTab = 'toko-online',
   customers,
   campaigns,
   vouchers,
   onBack,
   onSendCampaign,
   onAddVoucher,
-  onToggleVoucherActive
+  onToggleVoucherActive,
+  onOpenOnlineCatalog
 }) => {
   const [activeTab, setActiveTab] = useState<string>(() => {
+    if (initialTab === 'toko-online' || initialTab === 'store' || initialTab === 'mkt-store') return 'toko-online';
     if (initialTab === 'voucher-diskon' || initialTab === 'voucher') return 'promo-diskon';
     if (initialTab === 'ulasan-google' || initialTab === 'reviews') return 'riwayat-pesan';
-    return initialTab || 'broadcast-wa';
+    return initialTab || 'toko-online';
   });
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
-  // Sub-Menu A Form State (Broadcast WhatsApp)
+  // ---------------------------------------------------------------------------
+  // TOKO ONLINE & QR CODE STATE
+  // ---------------------------------------------------------------------------
+  const [storeConfig, setStoreConfig] = useState<OnlineStoreConfig>(() => getOnlineStoreConfig('bengkel'));
+  const [storeNameInput, setStoreNameInput] = useState(storeConfig.storeName);
+  const [storeTaglineInput, setStoreTaglineInput] = useState(storeConfig.tagline);
+  const [storeWaInput, setStoreWaInput] = useState(storeConfig.whatsappNumber);
+  const [storeHoursInput, setStoreHoursInput] = useState(storeConfig.operationalHours);
+  const [storeAddressInput, setStoreAddressInput] = useState(storeConfig.address);
+  const [storeAnnouncementInput, setStoreAnnouncementInput] = useState(storeConfig.announcement || '');
+  const [isStoreOpen, setIsStoreOpen] = useState(storeConfig.isOpen);
+
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
+  const [isGeneratingQr, setIsGeneratingQr] = useState(false);
+  const [isStandeeModalOpen, setIsStandeeModalOpen] = useState(false);
+  const [isLinkCopied, setIsLinkCopied] = useState(false);
+
+  // Public store URL
+  const publicStoreUrl = getPublicStoreUrl('bengkel', storeConfig.slug);
+
+  // Generate QR code on load
+  useEffect(() => {
+    if (publicStoreUrl) {
+      setIsGeneratingQr(true);
+      generateQrCodeDataUrl(publicStoreUrl, 512)
+        .then((url) => setQrCodeDataUrl(url))
+        .catch((err) => console.error('[QR Generation Error]:', err))
+        .finally(() => setIsGeneratingQr(false));
+    }
+  }, [publicStoreUrl]);
+
+  const handleSaveStoreConfig = (e: React.FormEvent) => {
+    e.preventDefault();
+    const updated = saveOnlineStoreConfig('bengkel', {
+      storeName: storeNameInput.trim() || 'BengkelQu Servis & Sparepart',
+      tagline: storeTaglineInput.trim(),
+      whatsappNumber: storeWaInput.trim() || '6281234567890',
+      operationalHours: storeHoursInput.trim(),
+      address: storeAddressInput.trim(),
+      announcement: storeAnnouncementInput.trim(),
+      isOpen: isStoreOpen
+    });
+    setStoreConfig(updated);
+    showToast('Pengaturan Toko Online & Nomor WhatsApp berhasil diperbarui!');
+  };
+
+  const handleCopyStoreLink = () => {
+    navigator.clipboard.writeText(publicStoreUrl).then(() => {
+      setIsLinkCopied(true);
+      setTimeout(() => setIsLinkCopied(false), 2000);
+      showToast('Tautan Toko Online berhasil disalin!');
+    });
+  };
+
+  const handleDownloadQrPng = () => {
+    downloadQrCodePng(publicStoreUrl, `qrcode-bengkelqu.png`);
+    showToast('QR Code resolusi tinggi berhasil diunduh (PNG)!');
+  };
+
+  // Sub-Menu Form State (Broadcast WhatsApp)
   const [draftTitle, setDraftTitle] = useState('Promo Servis Berkala & Ganti Oli Rutin');
   const [draftTarget, setDraftTarget] = useState('Semua Pelanggan Terdaftar');
   const [draftMessage, setDraftMessage] = useState(
     `🛵 PROMO KHUSUS BENGKEL QU! 🛵\n\nHalo Sahabat Bengkel Qu!\nSudah waktunya ganti oli atau servis rutin motormu? Dapatkan DISKON 15% untuk Paket Ganti Oli + Servis CVT minggu ini!\n\n✅ Oli Dijamin 100% Asli\n✅ Free Cek Rem & Tekanan Ban\n✅ Mekanik Profesional\n\nTunjukkan pesan ini ke kasir Bengkel Qu saat pengerjaan. Kami siap melayani!`
   );
 
-  // Sub-Menu B Form State (Promo & Diskon)
+  // Sub-Menu Form State (Promo & Diskon)
   const [newVoucherCode, setNewVoucherCode] = useState('');
   const [newVoucherTitle, setNewVoucherTitle] = useState('');
   const [newVoucherType, setNewVoucherType] = useState<'Persen' | 'Nominal'>('Persen');
@@ -70,7 +149,8 @@ export const MarketingView: React.FC<MarketingViewProps> = ({
 
   useEffect(() => {
     if (initialTab) {
-      if (initialTab === 'voucher-diskon' || initialTab === 'voucher') setActiveTab('promo-diskon');
+      if (initialTab === 'toko-online' || initialTab === 'store' || initialTab === 'mkt-store') setActiveTab('toko-online');
+      else if (initialTab === 'voucher-diskon' || initialTab === 'voucher') setActiveTab('promo-diskon');
       else if (initialTab === 'ulasan-google' || initialTab === 'reviews') setActiveTab('riwayat-pesan');
       else setActiveTab(initialTab);
     }
@@ -89,6 +169,11 @@ export const MarketingView: React.FC<MarketingViewProps> = ({
 
   const getHeaderMeta = () => {
     switch (activeTab) {
+      case 'toko-online':
+        return {
+          title: 'Toko Online & QR Code',
+          subtitle: 'Katalog Digital Publik, WhatsApp Order & Cetak Standee Meja'
+        };
       case 'broadcast-wa':
         return {
           title: 'Broadcast WhatsApp',
@@ -106,8 +191,8 @@ export const MarketingView: React.FC<MarketingViewProps> = ({
         };
       default:
         return {
-          title: 'Marketing',
-          subtitle: 'Promosi & Komunikasi Pelanggan'
+          title: 'Marketing & Promosi',
+          subtitle: 'Katalog Digital, Kampanye WhatsApp & Voucher'
         };
     }
   };
@@ -245,9 +330,66 @@ export const MarketingView: React.FC<MarketingViewProps> = ({
         </div>
       </div>
 
+      {/* SUB-MENU TABS BAR (Quick Navigation across Marketing Tools) */}
+      <div className="bg-white border-b border-slate-200 px-4 py-2 sticky top-[48px] z-20 shadow-2xs">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar max-w-4xl mx-auto">
+          <button
+            type="button"
+            onClick={() => setActiveTab('toko-online')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeTab === 'toko-online'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+          >
+            <Store className="w-3.5 h-3.5" />
+            <span>Toko Online & QR</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('broadcast-wa')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeTab === 'broadcast-wa'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+          >
+            <Send className="w-3.5 h-3.5" />
+            <span>Broadcast WA</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('promo-diskon')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeTab === 'promo-diskon'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+          >
+            <Tag className="w-3.5 h-3.5" />
+            <span>Promo & Voucher</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('riwayat-pesan')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeTab === 'riwayat-pesan'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+          >
+            <Star className="w-3.5 h-3.5" />
+            <span>Riwayat Pesan</span>
+          </button>
+        </div>
+      </div>
+
       {/* Floating Toast Notification */}
       {toastMessage && (
-        <div className="bg-emerald-900 text-white text-xs font-semibold px-4 py-2.5 shadow-lg flex items-center justify-between gap-2 sticky top-[48px] z-20">
+        <div className="bg-emerald-900 text-white text-xs font-semibold px-4 py-2.5 shadow-lg flex items-center justify-between gap-2 sticky top-[88px] z-20">
           <div className="flex items-center gap-2 min-w-0">
             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
             <span className="truncate">{toastMessage}</span>
@@ -263,6 +405,280 @@ export const MarketingView: React.FC<MarketingViewProps> = ({
 
       {/* Main Content Area */}
       <div className="p-4 space-y-4 max-w-4xl mx-auto w-full pb-20">
+
+        {/* =====================================================================
+            SUB-MENU UTAMA: TOKO ONLINE & QR CODE GENERATOR (Pusat Marketing)
+        ===================================================================== */}
+        {activeTab === 'toko-online' && (
+          <div className="space-y-4">
+            {/* 1. Status Toko & Quick Actions */}
+            <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-xs border border-slate-200/80">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold shrink-0">
+                    <Store className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-base font-extrabold text-slate-900">
+                        {storeConfig.storeName}
+                      </h2>
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
+                        storeConfig.isOpen
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          : 'bg-rose-50 text-rose-700 border border-rose-200'
+                      }`}>
+                        {storeConfig.isOpen ? '🟢 Toko Buka' : '🔴 Toko Tutup'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Katalog publik aktif & menerima pesanan langsung via WhatsApp.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (onOpenOnlineCatalog) {
+                        onOpenOnlineCatalog();
+                      } else {
+                        window.open(publicStoreUrl, '_blank');
+                      }
+                    }}
+                    className="flex-1 sm:flex-initial py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span>Buka Toko Online</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsStandeeModalOpen(true)}
+                    className="flex-1 sm:flex-initial py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
+                  >
+                    <Printer className="w-3.5 h-3.5" />
+                    <span>Cetak Standee</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Tautan Toko Online */}
+              <div className="mt-4 pt-1">
+                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">
+                  Link Publik Toko Online (Bagikan ke Pelanggan / Medsos):
+                </label>
+                <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl p-1.5">
+                  <input
+                    type="text"
+                    readOnly
+                    value={publicStoreUrl}
+                    className="flex-1 bg-transparent border-0 px-2 text-xs font-mono text-slate-700 truncate focus:outline-hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleCopyStoreLink}
+                    className="py-1.5 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+                  >
+                    {isLinkCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{isLinkCopied ? 'Tersalin' : 'Salin'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (navigator.share) {
+                        navigator.share({
+                          title: storeConfig.storeName,
+                          text: `Buka katalog digital dan pesan langsung di ${storeConfig.storeName}:`,
+                          url: publicStoreUrl
+                        });
+                      } else {
+                        handleCopyStoreLink();
+                      }
+                    }}
+                    className="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-slate-900 transition-colors cursor-pointer shrink-0"
+                    title="Bagikan"
+                  >
+                    <Share2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. QR Code Generator Card */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-white rounded-3xl p-5 shadow-xs border border-slate-200/80 flex flex-col items-center text-center">
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+                  QR Code Toko Resmi
+                </span>
+
+                <div className="relative w-48 h-48 bg-white rounded-2xl p-2.5 border-2 border-slate-200 shadow-inner flex items-center justify-center">
+                  {isGeneratingQr ? (
+                    <div className="flex flex-col items-center gap-2 text-xs text-slate-400">
+                      <RefreshCw className="w-5 h-5 animate-spin text-emerald-600" />
+                      <span>Membuat QR Code...</span>
+                    </div>
+                  ) : qrCodeDataUrl ? (
+                    <img
+                      src={qrCodeDataUrl}
+                      alt="QR Code Toko"
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <span className="text-xs text-slate-400">QR Code Error</span>
+                  )}
+                </div>
+
+                <p className="text-[11px] text-slate-500 mt-2.5">
+                  Pelanggan cukup mengarahkan kamera HP untuk membuka katalog tanpa instal aplikasi.
+                </p>
+
+                <div className="w-full grid grid-cols-2 gap-2 mt-4">
+                  <button
+                    type="button"
+                    onClick={handleDownloadQrPng}
+                    className="py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Unduh PNG</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsStandeeModalOpen(true)}
+                    className="py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <Printer className="w-3.5 h-3.5" />
+                    <span>Cetak Standee</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* 3. Form Pengaturan Toko Online & Nomor WhatsApp Penerima Pesanan */}
+              <div className="md:col-span-2 bg-white rounded-3xl p-5 sm:p-6 shadow-xs border border-slate-200/80">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+                  <div>
+                    <h3 className="text-sm font-extrabold text-slate-900">
+                      Pengaturan Toko Online & WhatsApp Penerima
+                    </h3>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Kontrol jam operasional, alamat, dan nomor WhatsApp admin yang menerima direct order.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsStoreOpen(!isStoreOpen)}
+                      className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        isStoreOpen
+                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                          : 'bg-rose-100 text-rose-800 border border-rose-300'
+                      }`}
+                    >
+                      {isStoreOpen ? 'Status: BUKA' : 'Status: TUTUP'}
+                    </button>
+                  </div>
+                </div>
+
+                <form onSubmit={handleSaveStoreConfig} className="space-y-3.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-600 block mb-1">
+                        Nama Toko / Bengkel Publik *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={storeNameInput}
+                        onChange={(e) => setStoreNameInput(e.target.value)}
+                        placeholder="Contoh: BengkelQu Motor Jaya"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-600 block mb-1">
+                        Nomor WhatsApp Penerima Pesanan *
+                      </label>
+                      <input
+                        type="tel"
+                        required
+                        value={storeWaInput}
+                        onChange={(e) => setStoreWaInput(e.target.value)}
+                        placeholder="Contoh: 081234567890 atau 628..."
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-semibold focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-600 block mb-1">
+                      Slogan / Deskripsi Singkat Toko:
+                    </label>
+                    <input
+                      type="text"
+                      value={storeTaglineInput}
+                      onChange={(e) => setStoreTaglineInput(e.target.value)}
+                      placeholder="Contoh: Servis Cepat & Sparepart Asli Bergaransi"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-600 block mb-1">
+                        Jam Operasional Toko:
+                      </label>
+                      <input
+                        type="text"
+                        value={storeHoursInput}
+                        onChange={(e) => setStoreHoursInput(e.target.value)}
+                        placeholder="Contoh: 08:00 - 17:00 WIB"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-600 block mb-1">
+                        Alamat Singkat / Lokasi:
+                      </label>
+                      <input
+                        type="text"
+                        value={storeAddressInput}
+                        onChange={(e) => setStoreAddressInput(e.target.value)}
+                        placeholder="Contoh: Jl. Ahmad Yani No. 88"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-600 block mb-1">
+                      Pengumuman / Teks Promo Header:
+                    </label>
+                    <input
+                      type="text"
+                      value={storeAnnouncementInput}
+                      onChange={(e) => setStoreAnnouncementInput(e.target.value)}
+                      placeholder="Contoh: Gratis Cek Rem & Diskon 10% Servis Bulan Ini!"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                    />
+                  </div>
+
+                  <div className="pt-2 flex justify-end">
+                    <button
+                      type="submit"
+                      className="py-2.5 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-md active:scale-95 transition-all cursor-pointer"
+                    >
+                      <Check className="w-4 h-4" />
+                      <span>Simpan Perubahan Toko</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* =====================================================================
             SUB-MENU A: BROADCAST WHATSAPP
@@ -690,6 +1106,16 @@ export const MarketingView: React.FC<MarketingViewProps> = ({
         )}
 
       </div>
+
+      {/* STANDEE MEJA / BROSUR QR PRINT MODAL */}
+      <StandeePrintModal
+        isOpen={isStandeeModalOpen}
+        onClose={() => setIsStandeeModalOpen(false)}
+        storeConfig={storeConfig}
+        publicUrl={publicStoreUrl}
+        moduleName="BengkelQu"
+      />
     </div>
   );
 };
+

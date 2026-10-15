@@ -17,7 +17,8 @@ import {
   Layers,
   Sparkles,
   TrendingUp,
-  Tag
+  Tag,
+  Globe
 } from 'lucide-react';
 import { 
   RawMaterial, 
@@ -25,6 +26,8 @@ import {
   ProductionBatch, 
   RecipeMaterialItem 
 } from '../TitipTypes';
+import { ImageUploadWithCompression } from '../../common/ImageUploadWithCompression';
+import { OnlineStoreToggle } from '../../common/OnlineStoreToggle';
 
 interface ProduksiHppViewProps {
   recipes: ProductRecipe[];
@@ -63,6 +66,9 @@ export const ProduksiHppView: React.FC<ProduksiHppViewProps> = ({
   const [retailPrice, setRetailPrice] = useState(18000);
   const [consignmentPrice, setConsignmentPrice] = useState(15000);
   const [resellerPrice, setResellerPrice] = useState(12500);
+  const [recipePhotoUrl, setRecipePhotoUrl] = useState('');
+  const [recipeShowOnline, setRecipeShowOnline] = useState(true);
+  const [recipeVendorName, setRecipeVendorName] = useState('');
 
   // Material item to add into recipe
   const [selectedMatId, setSelectedMatId] = useState(materials[0]?.id || '');
@@ -124,7 +130,10 @@ export const ProduksiHppView: React.FC<ProduksiHppViewProps> = ({
       sellingPriceRetail: Number(retailPrice),
       consignmentPrice: Number(consignmentPrice),
       resellerPrice: Number(resellerPrice),
-      currentStock: 0
+      currentStock: 0,
+      photoUrl: recipePhotoUrl || undefined,
+      showInOnlineStore: recipeShowOnline,
+      vendorName: recipeVendorName.trim() || undefined
     };
 
     onAddRecipe(newRecipe);
@@ -132,6 +141,9 @@ export const ProduksiHppView: React.FC<ProduksiHppViewProps> = ({
     // Reset
     setName('');
     setRecipeMaterials([]);
+    setRecipePhotoUrl('');
+    setRecipeShowOnline(true);
+    setRecipeVendorName('');
   };
 
   const handleSaveRawMaterial = (e: React.FormEvent) => {
@@ -618,6 +630,38 @@ export const ProduksiHppView: React.FC<ProduksiHppViewProps> = ({
                     className="w-full px-2 py-1.5 border border-slate-200 rounded-xl text-xs font-bold text-indigo-700"
                   />
                 </div>
+              </div>
+
+              {/* Vendor / Mitra Titipan */}
+              <div>
+                <label className="text-[11px] font-bold text-slate-600 block mb-1">Nama Vendor / Supplier Titipan (Opsional):</label>
+                <input
+                  type="text"
+                  value={recipeVendorName}
+                  onChange={(e) => setRecipeVendorName(e.target.value)}
+                  placeholder="Contoh: Dapur Bu Siti, Keripik Nusantara"
+                  className="w-full px-3 py-1.5 border border-slate-200 rounded-xl text-xs"
+                />
+              </div>
+
+              {/* Foto Produk (Auto-WebP Compression) */}
+              <div className="pt-2">
+                <ImageUploadWithCompression
+                  value={recipePhotoUrl}
+                  onChange={setRecipePhotoUrl}
+                  onClear={() => setRecipePhotoUrl('')}
+                  label="Foto Produk Konsinyasi (Auto-WebP ~30-50KB)"
+                />
+              </div>
+
+              {/* Sakelar Tampilkan di Toko Online */}
+              <div className="pt-1">
+                <OnlineStoreToggle
+                  checked={recipeShowOnline}
+                  onChange={setRecipeShowOnline}
+                  label="Tampilkan di Toko Online TitipQu"
+                  description="Produk ini akan muncul di katalog publik dan dapat dipesan pelanggan / reseller via WA."
+                />
               </div>
 
               <div className="pt-2 flex justify-end gap-2 border-t border-slate-100">

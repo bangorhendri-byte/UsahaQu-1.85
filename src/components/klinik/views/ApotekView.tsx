@@ -19,12 +19,15 @@ import {
   Sparkles,
   Printer,
   Calendar,
-  AlertCircle
+  AlertCircle,
+  Globe
 } from 'lucide-react';
 import { 
   KlinikObat, 
   ResepApotek 
 } from '../KlinikTypes';
+import { ImageUploadWithCompression } from '../../common/ImageUploadWithCompression';
+import { OnlineStoreToggle } from '../../common/OnlineStoreToggle';
 
 interface ApotekViewProps {
   obatList: KlinikObat[];
@@ -60,6 +63,8 @@ export const ApotekView: React.FC<ApotekViewProps> = ({
   const [newBatch, setNewBatch] = useState('BTC-2026-01');
   const [newPabrik, setNewPabrik] = useState('Kimia Farma');
   const [newDosis, setNewDosis] = useState('3 x sehari 1 tablet sesudah makan');
+  const [newPhotoUrl, setNewPhotoUrl] = useState('');
+  const [newShowOnline, setNewShowOnline] = useState(true);
 
   // Etiket Modal State
   const [etiketModalResep, setEtiketModalResep] = useState<ResepApotek | null>(null);
@@ -111,13 +116,17 @@ export const ApotekView: React.FC<ApotekViewProps> = ({
       noBatch: newBatch,
       pabrik: newPabrik,
       dosisStandar: newDosis,
-      aturanStandar: 'Sesudah makan'
+      aturanStandar: 'Sesudah makan',
+      photoUrl: newPhotoUrl || undefined,
+      showInOnlineStore: newShowOnline
     };
 
     onAddNewObat(newObat);
     setIsAddModalOpen(false);
     // Reset
     setNewNama('');
+    setNewPhotoUrl('');
+    setNewShowOnline(true);
     alert(`✅ Obat ${newNama} berhasil ditambahkan ke Master Apotek!`);
   };
 
@@ -633,6 +642,26 @@ export const ApotekView: React.FC<ApotekViewProps> = ({
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono"
                   />
                 </div>
+              </div>
+
+              {/* Foto Obat (Auto-WebP Compression) */}
+              <div className="pt-2">
+                <ImageUploadWithCompression
+                  value={newPhotoUrl}
+                  onChange={setNewPhotoUrl}
+                  onClear={() => setNewPhotoUrl('')}
+                  label="Foto Obat / Alkes (Auto-WebP ~30-50KB)"
+                />
+              </div>
+
+              {/* Sakelar Tampilkan di Toko Online */}
+              <div className="pt-1">
+                <OnlineStoreToggle
+                  checked={newShowOnline}
+                  onChange={setNewShowOnline}
+                  label="Tampilkan di Toko Online Apotek"
+                  description="Obat/vitamin ini akan muncul di katalog digital publik dan dapat dipesan pelanggan via WA."
+                />
               </div>
 
               <div className="flex gap-2 pt-2">

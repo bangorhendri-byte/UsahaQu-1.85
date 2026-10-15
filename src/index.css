@@ -21,13 +21,15 @@
   }
 }
 
-/* Cetak Thermal Nota Kasir (58mm/80mm) POS Core Offline */
+/* Cetak Thermal Nota Kasir (58mm/80mm) POS Core & Standee Meja QR Toko */
 @media print {
   body * {
     visibility: hidden !important;
   }
   #pos-thermal-receipt,
-  #pos-thermal-receipt * {
+  #pos-thermal-receipt *,
+  #standee-print-target,
+  #standee-print-target * {
     visibility: visible !important;
   }
   #pos-thermal-receipt {
@@ -44,6 +46,18 @@
     font-size: 11px !important;
     line-height: 1.25 !important;
     z-index: 999999 !important;
+  }
+  #standee-print-target {
+    position: fixed !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) scale(1.1) !important;
+    margin: 0 auto !important;
+    box-shadow: none !important;
+    border: 2px solid #000 !important;
+    z-index: 999999 !important;
+    background: #fff !important;
+    color: #000 !important;
   }
   .no-print {
     display: none !important;

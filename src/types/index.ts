@@ -43,6 +43,9 @@ export interface Sparepart {
   rackLocation: string;
   supplier?: string;
   barcode?: string;
+  photoUrl?: string;
+  showInOnlineStore?: boolean;
+  description?: string;
 }
 
 export interface DamagedGood {

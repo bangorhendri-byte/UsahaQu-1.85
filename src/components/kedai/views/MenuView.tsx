@@ -13,6 +13,8 @@ import {
   DollarSign
 } from 'lucide-react';
 import { KedaiMenuItem, MenuVariantGroup, MenuTopping } from '../KedaiTypes';
+import { ImageUploadWithCompression } from '../../common/ImageUploadWithCompression';
+import { OnlineStoreToggle } from '../../common/OnlineStoreToggle';
 
 interface MenuViewProps {
   menuItems: KedaiMenuItem[];
@@ -46,6 +48,8 @@ export const MenuView: React.FC<MenuViewProps> = ({
   const [isPopular, setIsPopular] = useState<boolean>(false);
   const [available, setAvailable] = useState<boolean>(true);
   const [description, setDescription] = useState<string>('');
+  const [photoUrl, setPhotoUrl] = useState<string>('');
+  const [showInOnlineStore, setShowInOnlineStore] = useState<boolean>(true);
 
   // New Category State
   const [isNewCatModalOpen, setIsNewCatModalOpen] = useState(false);
@@ -70,6 +74,8 @@ export const MenuView: React.FC<MenuViewProps> = ({
     setIsPopular(false);
     setAvailable(true);
     setDescription('');
+    setPhotoUrl('');
+    setShowInOnlineStore(true);
     setIsModalOpen(true);
   };
 
@@ -84,6 +90,8 @@ export const MenuView: React.FC<MenuViewProps> = ({
     setIsPopular(item.isPopular || false);
     setAvailable(item.available);
     setDescription(item.description || '');
+    setPhotoUrl(item.photoUrl || '');
+    setShowInOnlineStore(item.showInOnlineStore !== false);
     setIsModalOpen(true);
   };
 
@@ -102,7 +110,9 @@ export const MenuView: React.FC<MenuViewProps> = ({
         stock,
         isPopular,
         available,
-        description: description.trim()
+        description: description.trim(),
+        photoUrl: photoUrl || undefined,
+        showInOnlineStore
       });
     } else {
       onAddMenuItem({
@@ -114,7 +124,9 @@ export const MenuView: React.FC<MenuViewProps> = ({
         stock,
         isPopular,
         available,
-        description: description.trim()
+        description: description.trim(),
+        photoUrl: photoUrl || undefined,
+        showInOnlineStore
       });
     }
 
@@ -200,10 +212,21 @@ export const MenuView: React.FC<MenuViewProps> = ({
               <div>
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2.5">
-                    <span className="text-3xl p-1.5 bg-[#FAF7F2] rounded-xl border border-[#E7DFD5]">{item.imageIcon}</span>
+                    {item.photoUrl ? (
+                      <img src={item.photoUrl} alt={item.name} className="w-12 h-12 object-cover rounded-xl border border-[#E7DFD5] shrink-0" />
+                    ) : (
+                      <span className="text-3xl p-1.5 bg-[#FAF7F2] rounded-xl border border-[#E7DFD5]">{item.imageIcon}</span>
+                    )}
                     <div>
                       <h4 className="font-bold text-sm text-[#1B3B2B]">{item.name}</h4>
-                      <p className="text-[10px] text-slate-400">{item.category}</p>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <p className="text-[10px] text-slate-400">{item.category}</p>
+                        {item.showInOnlineStore !== false && (
+                          <span className="text-[8px] font-black px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            Toko Online
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
@@ -412,6 +435,26 @@ export const MenuView: React.FC<MenuViewProps> = ({
                   />
                   <span className="font-medium text-slate-700">Tersedia untuk Dipesan</span>
                 </label>
+              </div>
+
+              {/* Foto Menu (Auto-WebP Compression) */}
+              <div className="pt-2">
+                <ImageUploadWithCompression
+                  value={photoUrl}
+                  onChange={setPhotoUrl}
+                  onClear={() => setPhotoUrl('')}
+                  label="Foto Menu Kuliner (Auto-WebP ~30-50KB)"
+                />
+              </div>
+
+              {/* Toggle Toko Online */}
+              <div className="pt-1">
+                <OnlineStoreToggle
+                  checked={showInOnlineStore}
+                  onChange={setShowInOnlineStore}
+                  label="Tampilkan di Toko Online Kedai"
+                  description="Menu ini akan tampil di daftar katalog online untuk pemesanan dine-in & takeaway via WA."
+                />
               </div>
             </div>
 

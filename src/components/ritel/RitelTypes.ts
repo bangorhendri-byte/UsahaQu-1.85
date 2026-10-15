@@ -29,6 +29,9 @@ export interface RitelProduct {
   expiryDate?: string;
   supplierId?: string;
   supplierName?: string;
+  photoUrl?: string;
+  showInOnlineStore?: boolean;
+  description?: string;
 }
 
 export interface CartItem {

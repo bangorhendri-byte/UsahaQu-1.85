@@ -197,6 +197,9 @@ export interface KlinikObat {
   dosisStandar?: string;
   aturanStandar?: string;
   efekSamping?: string;
+  photoUrl?: string;
+  showInOnlineStore?: boolean;
+  deskripsi?: string;
 }
 
 export interface ResepApotek {

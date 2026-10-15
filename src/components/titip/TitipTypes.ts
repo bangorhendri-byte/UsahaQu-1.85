@@ -51,6 +51,10 @@ export interface ProductRecipe {
   currentStock: number;
   unit: string;
   notes?: string;
+  photoUrl?: string;
+  showInOnlineStore?: boolean;
+  description?: string;
+  vendorName?: string;
 }
 
 export interface ProductionBatch {

@@ -20,9 +20,12 @@ import {
   Grid, 
   Tag, 
   Calendar,
-  Sparkles
+  Sparkles,
+  Globe
 } from 'lucide-react';
 import { RitelProduct, RitelSupplier } from '../RitelTypes';
+import { ImageUploadWithCompression } from '../../common/ImageUploadWithCompression';
+import { OnlineStoreToggle } from '../../common/OnlineStoreToggle';
 
 interface StokInventoryViewProps {
   products: RitelProduct[];
@@ -62,6 +65,8 @@ export const StokInventoryView: React.FC<StokInventoryViewProps> = ({
   const [formShelfLocation, setFormShelfLocation] = useState('Rak A1');
   const [formExpiryDate, setFormExpiryDate] = useState('2027-12-31');
   const [formSupplierId, setFormSupplierId] = useState('');
+  const [formPhotoUrl, setFormPhotoUrl] = useState('');
+  const [formShowOnline, setFormShowOnline] = useState(true);
 
   // Selected products for Cetak Label Harga
   const [selectedLabelProductIds, setSelectedLabelProductIds] = useState<string[]>([]);
@@ -103,6 +108,8 @@ export const StokInventoryView: React.FC<StokInventoryViewProps> = ({
     setFormShelfLocation('Rak Sembako A1');
     setFormExpiryDate('2027-12-31');
     setFormSupplierId(suppliers[0]?.id || '');
+    setFormPhotoUrl('');
+    setFormShowOnline(true);
     setIsModalOpen(true);
   };
 
@@ -121,6 +128,8 @@ export const StokInventoryView: React.FC<StokInventoryViewProps> = ({
     setFormShelfLocation(p.shelfLocation);
     setFormExpiryDate(p.expiryDate || '');
     setFormSupplierId(p.supplierId || '');
+    setFormPhotoUrl(p.photoUrl || '');
+    setFormShowOnline(p.showInOnlineStore !== false);
     setIsModalOpen(true);
   };
 
@@ -149,7 +158,9 @@ export const StokInventoryView: React.FC<StokInventoryViewProps> = ({
         shelfLocation: formShelfLocation,
         expiryDate: formExpiryDate,
         supplierId: formSupplierId || undefined,
-        supplierName: sup?.name || undefined
+        supplierName: sup?.name || undefined,
+        photoUrl: formPhotoUrl || undefined,
+        showInOnlineStore: formShowOnline
       });
     } else {
       onAddProduct({
@@ -166,7 +177,9 @@ export const StokInventoryView: React.FC<StokInventoryViewProps> = ({
         shelfLocation: formShelfLocation,
         expiryDate: formExpiryDate,
         supplierId: formSupplierId || undefined,
-        supplierName: sup?.name || undefined
+        supplierName: sup?.name || undefined,
+        photoUrl: formPhotoUrl || undefined,
+        showInOnlineStore: formShowOnline
       });
     }
 
@@ -764,6 +777,26 @@ export const StokInventoryView: React.FC<StokInventoryViewProps> = ({
                     <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
                   ))}
                 </select>
+              </div>
+
+              {/* Foto Produk (Auto-WebP Compression) */}
+              <div className="pt-2">
+                <ImageUploadWithCompression
+                  value={formPhotoUrl}
+                  onChange={setFormPhotoUrl}
+                  onClear={() => setFormPhotoUrl('')}
+                  label="Foto Produk Ritel (Auto-WebP ~30-50KB)"
+                />
+              </div>
+
+              {/* Sakelar Tampilkan di Toko Online */}
+              <div className="pt-1">
+                <OnlineStoreToggle
+                  checked={formShowOnline}
+                  onChange={setFormShowOnline}
+                  label="Tampilkan di Toko Online Ritel"
+                  description="Produk ini akan tampil di katalog digital dan dapat dipesan pelanggan melalui WhatsApp."
+                />
               </div>
 
               <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">

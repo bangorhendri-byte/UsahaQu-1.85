@@ -221,6 +221,14 @@ export const MENU_MODULES: MenuModuleConfig[] = [
     description: 'Kampanye promosi bengkel, formulir pengiriman broadcast WhatsApp, manajemen voucher diskon, dan log pesan.',
     subMenus: [
       {
+        id: 'toko-online',
+        title: 'Toko Online & QR Code',
+        subtitle: 'Katalog Digital Publik & Cetak Standee Meja',
+        iconName: 'Store',
+        badge: 'Katalog',
+        targetView: 'mkt-store'
+      },
+      {
         id: 'broadcast-wa',
         title: 'Broadcast WhatsApp',
         subtitle: 'Form Draf & Kirim Pesan Promo / Reminder',
