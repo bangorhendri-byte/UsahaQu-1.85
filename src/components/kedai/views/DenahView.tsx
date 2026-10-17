@@ -120,37 +120,57 @@ export const DenahView: React.FC<DenahViewProps> = ({
   };
 
   return (
-    <div className="space-y-4">
-      {/* Top Header & Bar Kontrol */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E7DFD5]">
-        <div>
-          <h2 className="text-xl font-bold text-[#1B3B2B] flex items-center gap-2">
-            <span>🗺️ Denah & Status Meja Kedai</span>
+    <div className="space-y-3">
+      {/* Top Header & Bar Kontrol Ringkas (Optimal Full Screen Denah) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-[#E7DFD5]">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <h2 className="text-base sm:text-lg font-black text-[#1B3B2B] flex items-center gap-1.5">
+            <span>🗺️ Denah Meja</span>
           </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Pantau posisi meja, status pesanan aktif, durasi nongkrong, dan langsung sambung ke kasir POS
-          </p>
+
+          {/* Status Meja Inline Ringkas (Hemat Ruang & Optimal Tanpa Card Menumpuk) */}
+          <div className="flex items-center gap-1.5 text-[11px] font-bold flex-wrap">
+            <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+              Total {stats.total} Meja
+            </span>
+            <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+              🟢 {stats.kosong} Kosong
+            </span>
+            <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+              🟡 {stats.terisi} Terisi
+            </span>
+            {stats.billing > 0 && (
+              <span className="px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-300 animate-pulse font-extrabold">
+                🔴 {stats.billing} Billing
+              </span>
+            )}
+            {stats.reservasi > 0 && (
+              <span className="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+                🟣 {stats.reservasi} Booking
+              </span>
+            )}
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           {/* Toggle Lock Denah */}
           <button
             onClick={() => setIsLocked(!isLocked)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
               isLocked 
                 ? 'bg-[#1B3B2B] text-[#FAF7F2] hover:bg-[#152e22]' 
-                : 'bg-[#C59B27] text-white animate-bounce shadow-sm'
+                : 'bg-[#C59B27] text-white animate-bounce shadow-xs'
             }`}
             title="Kunci / Buka kunci untuk menggeser letak denah meja"
           >
             {isLocked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
-            <span>{isLocked ? 'Denah Terkunci' : 'Mode Geser Meja'}</span>
+            <span>{isLocked ? 'Kunci Posisi' : 'Mode Geser Meja'}</span>
           </button>
 
           {/* Tambah Meja */}
           <button
             onClick={() => setIsAddTableOpen(true)}
-            className="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#C59B27] text-white hover:bg-[#b0891f] transition-all flex items-center gap-1 shadow-sm"
+            className="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#C59B27] text-white hover:bg-[#b0891f] transition-all flex items-center gap-1 shadow-xs cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>+ Meja</span>
@@ -158,55 +178,39 @@ export const DenahView: React.FC<DenahViewProps> = ({
         </div>
       </div>
 
-      {/* Ringkasan Status KPI Tanpa Box-ception */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
-        <div className="bg-white p-2.5 rounded-xl border border-[#E7DFD5] shadow-xs">
-          <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Total Meja</p>
-          <p className="text-lg font-bold text-[#1B3B2B] mt-0.5">{stats.total} Meja</p>
-        </div>
-        <div className="bg-white p-2.5 rounded-xl border border-emerald-200 shadow-xs">
-          <p className="text-[10px] font-semibold text-emerald-600 uppercase tracking-wider">🟢 Kosong</p>
-          <p className="text-lg font-bold text-emerald-700 mt-0.5">{stats.kosong}</p>
-        </div>
-        <div className="bg-white p-2.5 rounded-xl border border-amber-200 shadow-xs">
-          <p className="text-[10px] font-semibold text-amber-600 uppercase tracking-wider">🟡 Terisi</p>
-          <p className="text-lg font-bold text-amber-700 mt-0.5">{stats.terisi}</p>
-        </div>
-        <div className="bg-white p-2.5 rounded-xl border border-rose-200 shadow-xs">
-          <p className="text-[10px] font-semibold text-rose-600 uppercase tracking-wider">🔴 Minta Billing</p>
-          <p className="text-lg font-bold text-rose-700 mt-0.5">{stats.billing}</p>
-        </div>
-        <div className="bg-white p-2.5 rounded-xl border border-indigo-200 shadow-xs col-span-2 sm:col-span-1">
-          <p className="text-[10px] font-semibold text-indigo-600 uppercase tracking-wider">🟣 Reservasi</p>
-          <p className="text-lg font-bold text-indigo-700 mt-0.5">{stats.reservasi}</p>
-        </div>
-      </div>
-
       {/* Filter Area Berbasis Underline Minimalis */}
       <div className="flex items-center gap-1 overflow-x-auto pb-1 border-b border-[#E7DFD5]">
         {areas.map(area => {
           const isActive = selectedArea === area;
+          const countInArea = area === 'Semua' 
+            ? tables.length 
+            : tables.filter(t => t.area === area).length;
           return (
             <button
               key={area}
               onClick={() => setSelectedArea(area)}
-              className={`px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-all border-b-2 ${
+              className={`px-3 py-1 text-xs font-semibold whitespace-nowrap transition-all border-b-2 flex items-center gap-1.5 cursor-pointer ${
                 isActive 
                   ? 'border-[#C59B27] text-[#1B3B2B] font-bold' 
                   : 'border-transparent text-slate-500 hover:text-slate-800'
               }`}
             >
-              {area}
+              <span>{area}</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                isActive ? 'bg-[#1B3B2B] text-white' : 'bg-slate-100 text-slate-500'
+              }`}>
+                {countInArea}
+              </span>
             </button>
           );
         })}
       </div>
 
-      {/* Kanvas Denah Meja Interaktif */}
+      {/* Kanvas Denah Meja Interaktif - Luas & Optimal */}
       <div 
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
-        className="relative bg-white rounded-2xl border border-[#E7DFD5] shadow-xs min-h-[480px] overflow-hidden p-4 select-none"
+        className="relative bg-white rounded-2xl border border-[#E7DFD5] shadow-xs min-h-[560px] sm:min-h-[640px] overflow-hidden p-4 select-none"
         style={{
           backgroundImage: 'radial-gradient(#E2D9CE 1px, transparent 1px)',
           backgroundSize: '24px 24px'
