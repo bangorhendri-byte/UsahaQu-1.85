@@ -70,11 +70,13 @@ import { SettingView } from './views/SettingView';
 interface TitipQuViewProps {
   onBackToBengkel?: () => void;
   onOpenMasterSwitcher: () => void;
+  onOpenOnlineCatalog?: () => void;
 }
 
 export const TitipQuView: React.FC<TitipQuViewProps> = ({
   onBackToBengkel,
-  onOpenMasterSwitcher
+  onOpenMasterSwitcher,
+  onOpenOnlineCatalog
 }) => {
   // Navigation State (Active Menu Tab)
   const [activeTab, setActiveTab] = useState<TitipMenuTab>('produksi');
@@ -548,6 +550,7 @@ export const TitipQuView: React.FC<TitipQuViewProps> = ({
             stores={stores}
             onAddPromo={handleAddPromo}
             onTogglePromo={handleTogglePromo}
+            onOpenOnlineCatalog={onOpenOnlineCatalog}
           />
         )}
 

@@ -20,6 +20,8 @@ import {
   Coins
 } from 'lucide-react';
 import { RitelPromo, RitelCustomer } from '../RitelTypes';
+import { TokoOnlineMarketingPanel } from '../../marketing/TokoOnlineMarketingPanel';
+import { Store } from 'lucide-react';
 
 interface MarketingPromoViewProps {
   promos: RitelPromo[];
@@ -27,6 +29,7 @@ interface MarketingPromoViewProps {
   onAddPromo: (promo: Omit<RitelPromo, 'id'>) => void;
   onTogglePromo: (promoId: string) => void;
   onDeletePromo: (promoId: string) => void;
+  onOpenOnlineCatalog?: () => void;
 }
 
 export const MarketingPromoView: React.FC<MarketingPromoViewProps> = ({
@@ -34,9 +37,10 @@ export const MarketingPromoView: React.FC<MarketingPromoViewProps> = ({
   customers,
   onAddPromo,
   onTogglePromo,
-  onDeletePromo
+  onDeletePromo,
+  onOpenOnlineCatalog
 }) => {
-  const [subTab, setSubTab] = useState<'promo' | 'poin' | 'broadcast'>('promo');
+  const [subTab, setSubTab] = useState<'toko-online' | 'promo' | 'poin' | 'broadcast'>('toko-online');
 
   // Promo modal
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -99,6 +103,18 @@ export const MarketingPromoView: React.FC<MarketingPromoViewProps> = ({
       <div className="bg-white border-b border-slate-200 px-4 py-2.5 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-1.5">
           <button
+            onClick={() => setSubTab('toko-online')}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+              subTab === 'toko-online'
+                ? 'bg-[#1E3A8A] text-white shadow-xs'
+                : 'text-slate-600 hover:bg-slate-100'
+            }`}
+          >
+            <Store className="w-3.5 h-3.5 text-emerald-500" />
+            <span>Toko Online & QR Standee</span>
+          </button>
+
+          <button
             onClick={() => setSubTab('promo')}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
               subTab === 'promo'
@@ -149,6 +165,20 @@ export const MarketingPromoView: React.FC<MarketingPromoViewProps> = ({
           </button>
         )}
       </div>
+
+      {/* SUB-VIEW 0: Toko Online & QR Standee */}
+      {subTab === 'toko-online' && (
+        <div className="flex-1 p-4 overflow-y-auto">
+          <div className="max-w-5xl mx-auto">
+            <TokoOnlineMarketingPanel
+              moduleKey="ritel"
+              moduleTitle="RitelQu Mart & Kelontong"
+              themeColor="blue"
+              onOpenCatalog={onOpenOnlineCatalog}
+            />
+          </div>
+        </div>
+      )}
 
       {/* SUB-VIEW 1: Diskon & Promo Bundling */}
       {subTab === 'promo' && (

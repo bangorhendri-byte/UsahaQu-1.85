@@ -61,11 +61,13 @@ import { SettingView } from './views/SettingView';
 interface RitelQuViewProps {
   onBackToBengkel?: () => void;
   onOpenMasterSwitcher: () => void;
+  onOpenOnlineCatalog?: () => void;
 }
 
 export const RitelQuView: React.FC<RitelQuViewProps> = ({
   onBackToBengkel,
-  onOpenMasterSwitcher
+  onOpenMasterSwitcher,
+  onOpenOnlineCatalog
 }) => {
   // Navigation State: 8 Main Menus
   const [activeTab, setActiveTab] = useState<RitelMenuTab>('kasir');
@@ -522,6 +524,7 @@ export const RitelQuView: React.FC<RitelQuViewProps> = ({
             onAddPromo={handleAddPromo}
             onTogglePromo={handleTogglePromo}
             onDeletePromo={handleDeletePromo}
+            onOpenOnlineCatalog={onOpenOnlineCatalog}
           />
         )}
 

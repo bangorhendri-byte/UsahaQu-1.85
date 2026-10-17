@@ -15,21 +15,25 @@ import {
   X
 } from 'lucide-react';
 import { KedaiPromo, KedaiCustomer } from '../KedaiTypes';
+import { TokoOnlineMarketingPanel } from '../../marketing/TokoOnlineMarketingPanel';
+import { Store, QrCode } from 'lucide-react';
 
 interface MarketingViewProps {
   promos: KedaiPromo[];
   customers: KedaiCustomer[];
   onAddPromo: (promo: Omit<KedaiPromo, 'id' | 'usedCount'>) => void;
   onTogglePromo: (id: string) => void;
+  onOpenOnlineCatalog?: () => void;
 }
 
 export const MarketingView: React.FC<MarketingViewProps> = ({
   promos,
   customers,
   onAddPromo,
-  onTogglePromo
+  onTogglePromo,
+  onOpenOnlineCatalog
 }) => {
-  const [activeTab, setActiveTab] = useState<'promo' | 'poin' | 'wa'>('promo');
+  const [activeTab, setActiveTab] = useState<'toko-online' | 'promo' | 'poin' | 'wa'>('toko-online');
   const [isAddPromoOpen, setIsAddPromoOpen] = useState(false);
 
   // New promo form
@@ -101,10 +105,22 @@ export const MarketingView: React.FC<MarketingViewProps> = ({
       </div>
 
       {/* Sub Tabs Underline */}
-      <div className="flex items-center gap-2 border-b border-[#E7DFD5] pb-2 text-xs">
+      <div className="flex items-center gap-2 border-b border-[#E7DFD5] pb-2 text-xs overflow-x-auto no-scrollbar">
+        <button
+          onClick={() => setActiveTab('toko-online')}
+          className={`px-3.5 py-1.5 font-bold transition-all border-b-2 flex items-center gap-1.5 shrink-0 ${
+            activeTab === 'toko-online'
+              ? 'border-[#C59B27] text-[#1B3B2B]'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <Store className="w-3.5 h-3.5 text-emerald-600" />
+          <span>Toko Online & QR Standee</span>
+        </button>
+
         <button
           onClick={() => setActiveTab('promo')}
-          className={`px-3.5 py-1.5 font-bold transition-all border-b-2 flex items-center gap-1.5 ${
+          className={`px-3.5 py-1.5 font-bold transition-all border-b-2 flex items-center gap-1.5 shrink-0 ${
             activeTab === 'promo'
               ? 'border-[#C59B27] text-[#1B3B2B]'
               : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -116,7 +132,7 @@ export const MarketingView: React.FC<MarketingViewProps> = ({
 
         <button
           onClick={() => setActiveTab('poin')}
-          className={`px-3.5 py-1.5 font-bold transition-all border-b-2 flex items-center gap-1.5 ${
+          className={`px-3.5 py-1.5 font-bold transition-all border-b-2 flex items-center gap-1.5 shrink-0 ${
             activeTab === 'poin'
               ? 'border-[#C59B27] text-[#1B3B2B]'
               : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -128,7 +144,7 @@ export const MarketingView: React.FC<MarketingViewProps> = ({
 
         <button
           onClick={() => setActiveTab('wa')}
-          className={`px-3.5 py-1.5 font-bold transition-all border-b-2 flex items-center gap-1.5 ${
+          className={`px-3.5 py-1.5 font-bold transition-all border-b-2 flex items-center gap-1.5 shrink-0 ${
             activeTab === 'wa'
               ? 'border-[#C59B27] text-[#1B3B2B]'
               : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -139,7 +155,14 @@ export const MarketingView: React.FC<MarketingViewProps> = ({
         </button>
       </div>
 
-      {/* SUBTAB 1: KUPON DISKON */}
+      {/* SUBTAB 0: TOKO ONLINE & QR STANDEE */}
+      {activeTab === 'toko-online' && (
+        <TokoOnlineMarketingPanel
+          moduleKey="kedai"
+          moduleTitle="KedaiQu Kopi & Resto"
+          onOpenCatalog={onOpenOnlineCatalog}
+        />
+      )}
       {activeTab === 'promo' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {promos.map(promo => (

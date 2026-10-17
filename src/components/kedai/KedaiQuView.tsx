@@ -60,11 +60,13 @@ import { SettingView } from './views/SettingView';
 interface KedaiQuViewProps {
   onBackToBengkel?: () => void;
   onOpenMasterSwitcher: () => void;
+  onOpenOnlineCatalog?: () => void;
 }
 
 export const KedaiQuView: React.FC<KedaiQuViewProps> = ({
   onBackToBengkel,
-  onOpenMasterSwitcher
+  onOpenMasterSwitcher,
+  onOpenOnlineCatalog
 }) => {
   // Navigation State
   const [activeTab, setActiveTab] = useState<KedaiMenuTab>('denah');
@@ -545,6 +547,7 @@ export const KedaiQuView: React.FC<KedaiQuViewProps> = ({
                 onTogglePromo={(id) => {
                   setPromos(prev => prev.map(p => p.id === id ? { ...p, active: !p.active } : p));
                 }}
+                onOpenOnlineCatalog={onOpenOnlineCatalog}
               />
             )}
 

@@ -29,7 +29,7 @@ export interface CatalogOrderItem {
   variant?: string;
   notes?: string;
   photoUrl?: string;
-  type?: 'product' | 'service' | 'medicine';
+  type?: 'product' | 'service' | 'medicine' | 'consultation';
 }
 
 export interface CheckoutData {

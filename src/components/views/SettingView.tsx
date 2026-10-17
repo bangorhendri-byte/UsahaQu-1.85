@@ -1141,7 +1141,7 @@ export const SettingView: React.FC<SettingViewProps> = ({
                       { key: 'ritel', label: 'RitelQu', icon: '🛒' },
                       { key: 'titip', label: 'Titip Qu', icon: '📦' }
                     ].map((mod) => {
-                      const hasAccess = diagnostics.modulesAccess[mod.key as any];
+                      const hasAccess = (diagnostics.modulesAccess as Record<string, boolean>)[mod.key];
                       return (
                         <div
                           key={mod.key}

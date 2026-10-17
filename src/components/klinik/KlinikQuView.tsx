@@ -25,7 +25,8 @@ import {
   Clock, 
   CheckCircle2, 
   Crown,
-  ChevronLeft
+  ChevronLeft,
+  Store
 } from 'lucide-react';
 import { 
   KlinikMenuTab, 
@@ -76,11 +77,13 @@ import { SettingView } from './views/SettingView';
 interface KlinikQuViewProps {
   onBackToBengkel?: () => void;
   onOpenMasterSwitcher: () => void;
+  onOpenOnlineCatalog?: () => void;
 }
 
 export const KlinikQuView: React.FC<KlinikQuViewProps> = ({
   onBackToBengkel,
-  onOpenMasterSwitcher
+  onOpenMasterSwitcher,
+  onOpenOnlineCatalog
 }) => {
   // Navigation State (Active Menu Tab)
   const [activeTab, setActiveTab] = useState<KlinikMenuTab>('pendaftaran');
@@ -466,6 +469,19 @@ export const KlinikQuView: React.FC<KlinikQuViewProps> = ({
                 <span className="text-[10px] text-slate-400 ml-1 hidden sm:inline">Hari ini</span>
               </div>
             </div>
+
+            {/* Tombol Toko Online & Katalog Apotek */}
+            {onOpenOnlineCatalog && (
+              <button
+                type="button"
+                onClick={onOpenOnlineCatalog}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0F4C5C] hover:bg-teal-900 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+                title="Buka Toko Online & Katalog Apotek Publik"
+              >
+                <Store className="w-3.5 h-3.5 text-teal-300" />
+                <span className="hidden sm:inline">Toko Online</span>
+              </button>
+            )}
           </div>
         </header>
 

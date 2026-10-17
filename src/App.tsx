@@ -75,10 +75,36 @@ import { TitipQuView } from './components/titip/TitipQuView';
 import { MasterSwitcherModal, EcosystemId } from './components/common/MasterSwitcherModal';
 import { EcosystemPreviewView } from './components/views/EcosystemPreviewView';
 import { BusinessTypeOnboardingModal } from './components/modals/BusinessTypeOnboardingModal';
+import { OnlineCatalogView } from './components/catalog/OnlineCatalogView';
 import { openDatabase, seedInitialDataIfEmpty } from './db/indexedDbManager';
 import { getLicense, setPrimaryModule } from './engine/licenseEngine';
 
 export default function App() {
+  // Online Store & Digital Catalog Public View State
+  const [isOnlineCatalogOpen, setIsOnlineCatalogOpen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return params.has('toko') || params.has('modul') || params.get('view') === 'catalog';
+    }
+    return false;
+  });
+
+  const [onlineCatalogInitialModule, setOnlineCatalogInitialModule] = useState<EcosystemId>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const mod = params.get('modul') as EcosystemId;
+      if (mod === 'bengkel' || mod === 'kedai' || mod === 'ritel' || mod === 'klinik' || mod === 'titip') {
+        return mod;
+      }
+      const toko = params.get('toko')?.toLowerCase();
+      if (toko?.includes('kedai')) return 'kedai';
+      if (toko?.includes('ritel')) return 'ritel';
+      if (toko?.includes('klinik')) return 'klinik';
+      if (toko?.includes('titip')) return 'titip';
+    }
+    return 'bengkel';
+  });
+
   // Persistence state
   const [queues, setQueues] = useState<ServiceQueue[]>(() => {
     const saved = localStorage.getItem('bq_queues');
@@ -782,7 +808,7 @@ export default function App() {
         case 'marketing':
           return (
             <MarketingView
-              initialTab={selectedSubMenu?.id || 'broadcast-wa'}
+              initialTab={selectedSubMenu?.id || 'toko-online'}
               customers={customers}
               campaigns={campaigns}
               vouchers={vouchers}
@@ -794,6 +820,10 @@ export default function App() {
                   prev.map((v) => (v.id === vchId ? { ...v, isActive: !v.isActive } : v))
                 )
               }
+              onOpenOnlineCatalog={() => {
+                setOnlineCatalogInitialModule('bengkel');
+                setIsOnlineCatalogOpen(true);
+              }}
             />
           );
         case 'laporan':
@@ -1011,6 +1041,22 @@ export default function App() {
     return null;
   };
 
+  // Tampilkan Halaman Toko Online Publik jika sedang membuka katalog publik / URL params (?toko= / ?modul=)
+  if (isOnlineCatalogOpen) {
+    return (
+      <OnlineCatalogView
+        initialModule={onlineCatalogInitialModule}
+        onBackToAdmin={() => {
+          setIsOnlineCatalogOpen(false);
+          if (window.history.pushState) {
+            window.history.pushState({}, '', window.location.pathname);
+          }
+        }}
+        bengkelParts={spareparts}
+      />
+    );
+  }
+
   // Tampilkan Halaman Login Auto Google Account terlebih dahulu sebelum masuk ke Halaman Utama
   if (!userSession) {
     return (
@@ -1036,6 +1082,10 @@ export default function App() {
         <KedaiQuView
           onBackToBengkel={() => setActiveEcosystem('bengkel')}
           onOpenMasterSwitcher={() => setIsMasterSwitcherOpen(true)}
+          onOpenOnlineCatalog={() => {
+            setOnlineCatalogInitialModule('kedai');
+            setIsOnlineCatalogOpen(true);
+          }}
         />
 
         <MasterSwitcherModal
@@ -1070,6 +1120,10 @@ export default function App() {
         <KlinikQuView
           onBackToBengkel={() => setActiveEcosystem('bengkel')}
           onOpenMasterSwitcher={() => setIsMasterSwitcherOpen(true)}
+          onOpenOnlineCatalog={() => {
+            setOnlineCatalogInitialModule('klinik');
+            setIsOnlineCatalogOpen(true);
+          }}
         />
 
         <MasterSwitcherModal
@@ -1104,6 +1158,10 @@ export default function App() {
         <RitelQuView
           onBackToBengkel={() => setActiveEcosystem('bengkel')}
           onOpenMasterSwitcher={() => setIsMasterSwitcherOpen(true)}
+          onOpenOnlineCatalog={() => {
+            setOnlineCatalogInitialModule('ritel');
+            setIsOnlineCatalogOpen(true);
+          }}
         />
 
         <MasterSwitcherModal
@@ -1138,6 +1196,10 @@ export default function App() {
         <TitipQuView
           onBackToBengkel={() => setActiveEcosystem('bengkel')}
           onOpenMasterSwitcher={() => setIsMasterSwitcherOpen(true)}
+          onOpenOnlineCatalog={() => {
+            setOnlineCatalogInitialModule('titip');
+            setIsOnlineCatalogOpen(true);
+          }}
         />
 
         <MasterSwitcherModal

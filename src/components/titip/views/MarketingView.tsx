@@ -23,6 +23,8 @@ import {
   ResellerPartner, 
   ConsignmentStore 
 } from '../TitipTypes';
+import { TokoOnlineMarketingPanel } from '../../marketing/TokoOnlineMarketingPanel';
+import { Store } from 'lucide-react';
 
 interface MarketingViewProps {
   promos: BundlingPromo[];
@@ -31,6 +33,7 @@ interface MarketingViewProps {
   stores: ConsignmentStore[];
   onAddPromo: (promo: BundlingPromo) => void;
   onTogglePromo: (id: string) => void;
+  onOpenOnlineCatalog?: () => void;
 }
 
 export const MarketingView: React.FC<MarketingViewProps> = ({
@@ -39,9 +42,10 @@ export const MarketingView: React.FC<MarketingViewProps> = ({
   resellers,
   stores,
   onAddPromo,
-  onTogglePromo
+  onTogglePromo,
+  onOpenOnlineCatalog
 }) => {
-  const [subTab, setSubTab] = useState<'bundling' | 'katalog' | 'broadcast'>('bundling');
+  const [subTab, setSubTab] = useState<'toko-online' | 'bundling' | 'katalog' | 'broadcast'>('toko-online');
 
   // Promo modal
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
@@ -87,10 +91,22 @@ export const MarketingView: React.FC<MarketingViewProps> = ({
     <div className="flex-1 flex flex-col bg-[#FFFBEB]/40 overflow-hidden">
       {/* Sub tabs */}
       <div className="bg-white border-b border-amber-200 px-4 py-2.5 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+          <button
+            onClick={() => setSubTab('toko-online')}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
+              subTab === 'toko-online'
+                ? 'bg-[#C2410C] text-white shadow-xs'
+                : 'text-amber-950 hover:bg-amber-100/50'
+            }`}
+          >
+            <Store className="w-3.5 h-3.5 text-emerald-500" />
+            <span>Toko Online & QR Standee</span>
+          </button>
+
           <button
             onClick={() => setSubTab('bundling')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
               subTab === 'bundling'
                 ? 'bg-[#C2410C] text-white shadow-xs'
                 : 'text-amber-950 hover:bg-amber-100/50'
@@ -102,7 +118,7 @@ export const MarketingView: React.FC<MarketingViewProps> = ({
 
           <button
             onClick={() => setSubTab('katalog')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
               subTab === 'katalog'
                 ? 'bg-[#C2410C] text-white shadow-xs'
                 : 'text-amber-950 hover:bg-amber-100/50'
@@ -114,7 +130,7 @@ export const MarketingView: React.FC<MarketingViewProps> = ({
 
           <button
             onClick={() => setSubTab('broadcast')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
               subTab === 'broadcast'
                 ? 'bg-[#C2410C] text-white shadow-xs'
                 : 'text-amber-950 hover:bg-amber-100/50'
@@ -132,13 +148,27 @@ export const MarketingView: React.FC<MarketingViewProps> = ({
         {subTab === 'bundling' && (
           <button
             onClick={() => setIsPromoModalOpen(true)}
-            className="px-3.5 py-1.5 rounded-xl bg-[#C2410C] hover:bg-orange-800 text-white text-xs font-extrabold flex items-center gap-1.5 shadow-xs cursor-pointer"
+            className="px-3.5 py-1.5 rounded-xl bg-[#C2410C] hover:bg-orange-800 text-white text-xs font-extrabold flex items-center gap-1.5 shadow-xs cursor-pointer shrink-0"
           >
             <Plus className="w-4 h-4 text-[#F59E0B]" />
             <span>Buat Paket Usaha</span>
           </button>
         )}
       </div>
+
+      {/* SUB-VIEW 0: Toko Online & QR Standee */}
+      {subTab === 'toko-online' && (
+        <div className="flex-1 p-4 overflow-y-auto">
+          <div className="max-w-5xl mx-auto">
+            <TokoOnlineMarketingPanel
+              moduleKey="titip"
+              moduleTitle="TitipQu Konsinyasi & Reseller"
+              themeColor="orange"
+              onOpenCatalog={onOpenOnlineCatalog}
+            />
+          </div>
+        </div>
+      )}
 
       {/* SUB-VIEW 1: Promo Bundling Paket Usaha */}
       {subTab === 'bundling' && (

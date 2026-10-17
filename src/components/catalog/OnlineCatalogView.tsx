@@ -44,11 +44,15 @@ import {
   DEFAULT_STORE_CONFIGS
 } from '../../services/onlineStoreService';
 import { Sparepart } from '../../types';
-import { QUICK_SERVICE_PACKAGES } from '../../data/mockData';
+import { QUICK_SERVICE_PACKAGES, INITIAL_SPAREPARTS } from '../../data/mockData';
 import { KedaiMenuItem } from '../kedai/KedaiTypes';
+import { STORAGE_KEYS as KEDAI_KEYS, DEFAULT_MENU, getKedaiStorage } from '../kedai/KedaiStorage';
 import { RitelProduct } from '../ritel/RitelTypes';
+import { RITEL_STORAGE_KEYS, DEFAULT_RITEL_PRODUCTS, getRitelStorage } from '../ritel/RitelStorage';
 import { KlinikObat, KlinikDokter } from '../klinik/KlinikTypes';
+import { KLINIK_STORAGE_KEYS, DEFAULT_KLINIK_OBAT, DEFAULT_KLINIK_DOKTER, getKlinikStorage } from '../klinik/KlinikStorage';
 import { ProductRecipe, ConsignmentStore } from '../titip/TitipTypes';
+import { TITIP_STORAGE_KEYS, DEFAULT_PRODUCT_RECIPES, DEFAULT_CONSIGNMENT_STORES, getTitipStorage } from '../titip/TitipStorage';
 
 interface OnlineCatalogViewProps {
   initialModule?: 'bengkel' | 'kedai' | 'ritel' | 'klinik' | 'titip';
@@ -224,9 +228,45 @@ export const OnlineCatalogView: React.FC<OnlineCatalogViewProps> = ({
   // FILTERED DATA ENGINE PER MODULE
   // ---------------------------------------------------------------------------
 
+  // Safe data source fallbacks
+  const effectiveBengkelParts = useMemo<Sparepart[]>(() => {
+    if (bengkelParts && bengkelParts.length > 0) return bengkelParts;
+    try {
+      const saved = localStorage.getItem('bq_spareparts');
+      return saved ? (JSON.parse(saved) as Sparepart[]) : INITIAL_SPAREPARTS;
+    } catch {
+      return INITIAL_SPAREPARTS;
+    }
+  }, [bengkelParts]);
+
+  const effectiveKedaiMenus = useMemo<KedaiMenuItem[]>(() => {
+    if (kedaiMenus && kedaiMenus.length > 0) return kedaiMenus;
+    return getKedaiStorage(KEDAI_KEYS.MENU, DEFAULT_MENU);
+  }, [kedaiMenus]);
+
+  const effectiveRitelProducts = useMemo<RitelProduct[]>(() => {
+    if (ritelProducts && ritelProducts.length > 0) return ritelProducts;
+    return getRitelStorage(RITEL_STORAGE_KEYS.PRODUCTS, DEFAULT_RITEL_PRODUCTS);
+  }, [ritelProducts]);
+
+  const effectiveKlinikMeds = useMemo<KlinikObat[]>(() => {
+    if (klinikMedicines && klinikMedicines.length > 0) return klinikMedicines;
+    return getKlinikStorage(KLINIK_STORAGE_KEYS.OBAT, DEFAULT_KLINIK_OBAT);
+  }, [klinikMedicines]);
+
+  const effectiveKlinikDocs = useMemo<KlinikDokter[]>(() => {
+    if (klinikDoctors && klinikDoctors.length > 0) return klinikDoctors;
+    return getKlinikStorage(KLINIK_STORAGE_KEYS.DOKTER, DEFAULT_KLINIK_DOKTER);
+  }, [klinikDoctors]);
+
+  const effectiveTitipRecipes = useMemo<ProductRecipe[]>(() => {
+    if (titipRecipes && titipRecipes.length > 0) return titipRecipes;
+    return getTitipStorage(TITIP_STORAGE_KEYS.RECIPES, DEFAULT_PRODUCT_RECIPES);
+  }, [titipRecipes]);
+
   // 1. BengkelQu Data
-  const bengkelSparepartsList = useMemo(() => {
-    return bengkelParts.filter((p) => {
+  const bengkelSparepartsList = useMemo<Sparepart[]>(() => {
+    return effectiveBengkelParts.filter((p: Sparepart) => {
       const isOnline = p.showInOnlineStore !== false;
       const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                             p.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -234,63 +274,63 @@ export const OnlineCatalogView: React.FC<OnlineCatalogViewProps> = ({
       const matchesCat = selectedCategory === 'Semua' || p.category === selectedCategory;
       return isOnline && matchesSearch && matchesCat;
     });
-  }, [bengkelParts, searchQuery, selectedCategory]);
+  }, [effectiveBengkelParts, searchQuery, selectedCategory]);
 
-  const bengkelCategories = useMemo(() => {
-    const cats = Array.from(new Set(bengkelParts.map((p) => p.category)));
+  const bengkelCategories = useMemo<string[]>(() => {
+    const cats = Array.from(new Set(effectiveBengkelParts.map((p) => p.category)));
     return ['Semua', ...cats];
-  }, [bengkelParts]);
+  }, [effectiveBengkelParts]);
 
   // 2. KedaiQu Data
-  const kedaiFilteredMenus = useMemo(() => {
-    return kedaiMenus.filter((m) => {
+  const kedaiFilteredMenus = useMemo<KedaiMenuItem[]>(() => {
+    return effectiveKedaiMenus.filter((m: KedaiMenuItem) => {
       const isOnline = m.showInOnlineStore !== false;
       const matchesSearch = m.name.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCat = selectedCategory === 'Semua' || m.category === selectedCategory;
       return isOnline && matchesSearch && matchesCat;
     });
-  }, [kedaiMenus, searchQuery, selectedCategory]);
+  }, [effectiveKedaiMenus, searchQuery, selectedCategory]);
 
-  const kedaiCategories = useMemo(() => {
-    const cats = Array.from(new Set(kedaiMenus.map((m) => m.category)));
+  const kedaiCategories = useMemo<string[]>(() => {
+    const cats = Array.from(new Set(effectiveKedaiMenus.map((m) => m.category)));
     return ['Semua', ...cats];
-  }, [kedaiMenus]);
+  }, [effectiveKedaiMenus]);
 
   // 3. RitelQu Data
-  const ritelFilteredProducts = useMemo(() => {
-    return ritelProducts.filter((p) => {
+  const ritelFilteredProducts = useMemo<RitelProduct[]>(() => {
+    return effectiveRitelProducts.filter((p: RitelProduct) => {
       const isOnline = p.showInOnlineStore !== false;
       const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                             p.sku.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCat = selectedCategory === 'Semua' || p.category === selectedCategory;
       return isOnline && matchesSearch && matchesCat;
     });
-  }, [ritelProducts, searchQuery, selectedCategory]);
+  }, [effectiveRitelProducts, searchQuery, selectedCategory]);
 
-  const ritelCategories = useMemo(() => {
-    const cats = Array.from(new Set(ritelProducts.map((p) => p.category)));
+  const ritelCategories = useMemo<string[]>(() => {
+    const cats = Array.from(new Set(effectiveRitelProducts.map((p) => p.category)));
     return ['Semua', ...cats];
-  }, [ritelProducts]);
+  }, [effectiveRitelProducts]);
 
   // 4. KlinikQu Data
-  const klinikFilteredMeds = useMemo(() => {
-    return klinikMedicines.filter((m) => {
+  const klinikFilteredMeds = useMemo<KlinikObat[]>(() => {
+    return effectiveKlinikMeds.filter((m: KlinikObat) => {
       const isOnline = m.showInOnlineStore !== false;
       const matchesSearch = m.namaObat.toLowerCase().includes(searchQuery.toLowerCase()) ||
                             m.kodeObat.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCat = selectedCategory === 'Semua' || m.kategori === selectedCategory;
       return isOnline && matchesSearch && matchesCat;
     });
-  }, [klinikMedicines, searchQuery, selectedCategory]);
+  }, [effectiveKlinikMeds, searchQuery, selectedCategory]);
 
-  const klinikCategories = useMemo(() => {
-    const cats = Array.from(new Set(klinikMedicines.map((m) => m.kategori)));
+  const klinikCategories = useMemo<string[]>(() => {
+    const cats = Array.from(new Set(effectiveKlinikMeds.map((m) => m.kategori)));
     return ['Semua', ...cats];
-  }, [klinikMedicines]);
+  }, [effectiveKlinikMeds]);
 
   // 5. TitipQu Data
-  const titipFilteredRecipes = useMemo(() => {
-    return titipRecipes.filter((r) => {
+  const titipFilteredRecipes = useMemo<ProductRecipe[]>(() => {
+    return effectiveTitipRecipes.filter((r: ProductRecipe) => {
       const isOnline = r.showInOnlineStore !== false;
       const matchesSearch = r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                             r.sku.toLowerCase().includes(searchQuery.toLowerCase());
@@ -298,17 +338,17 @@ export const OnlineCatalogView: React.FC<OnlineCatalogViewProps> = ({
       const matchesVendor = selectedVendor === 'Semua' || r.vendorName === selectedVendor;
       return isOnline && matchesSearch && matchesCat && matchesVendor;
     });
-  }, [titipRecipes, searchQuery, selectedCategory, selectedVendor]);
+  }, [effectiveTitipRecipes, searchQuery, selectedCategory, selectedVendor]);
 
-  const titipCategories = useMemo(() => {
-    const cats = Array.from(new Set(titipRecipes.map((r) => r.category)));
+  const titipCategories = useMemo<string[]>(() => {
+    const cats = Array.from(new Set(effectiveTitipRecipes.map((r) => r.category)));
     return ['Semua', ...cats];
-  }, [titipRecipes]);
+  }, [effectiveTitipRecipes]);
 
-  const titipVendors = useMemo(() => {
-    const vendors = Array.from(new Set(titipRecipes.map((r) => r.vendorName).filter(Boolean))) as string[];
+  const titipVendors = useMemo<string[]>(() => {
+    const vendors = Array.from(new Set(effectiveTitipRecipes.map((r) => r.vendorName).filter(Boolean))) as string[];
     return ['Semua', ...vendors];
-  }, [titipRecipes]);
+  }, [effectiveTitipRecipes]);
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col font-sans pb-24 text-slate-800">
